@@ -45,6 +45,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isStartDatePickerOpen, setStartDatePickerOpen] = useState(false);
+  const [isEndDatePickerOpen, setEndDatePickerOpen] = useState(false);
 
   const defaultValues: Partial<TaskFormValues> = {
     title: task?.title ?? '',
@@ -72,7 +74,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     setIsLoading(true);
 
     const { startDate, endDate, ...restOfData } = data;
-    const taskPayload: Partial<Task> = {
+    const taskPayload: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>> = {
       ...restOfData,
       userId: user.uid,
     };
@@ -89,7 +91,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       updateTask(firestore, user.uid, task.id, taskPayload);
       toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
     } else {
-      createTask(firestore, { ...taskPayload, isComplete: false } as Omit<Task, 'id' | 'createdAt'>);
+      createTask(firestore, { ...taskPayload, isComplete: false } as Omit<Task, 'id' | 'createdAt' | 'updatedAt'>);
       toast({ title: 'Task Created', description: `"${data.title}" has been added.` });
     }
     setIsLoading(false);
@@ -145,7 +147,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Start Date</FormLabel>
-                  <Popover>
+                  <Popover open={isStartDatePickerOpen} onOpenChange={setStartDatePickerOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -158,7 +160,15 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setStartDatePickerOpen(false);
+                        }}
+                        initialFocus
+                      />
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
@@ -171,7 +181,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>End Date</FormLabel>
-                  <Popover>
+                  <Popover open={isEndDatePickerOpen} onOpenChange={setEndDatePickerOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -184,7 +194,15 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setEndDatePickerOpen(false);
+                        }}
+                        initialFocus
+                      />
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
