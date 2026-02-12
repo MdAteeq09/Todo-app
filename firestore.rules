@@ -3,7 +3,7 @@
  * siloed under a user-specific path (`/users/{userId}`), ensuring that a user can
  * only ever access their own information, tasks, and categories. This approach,
  * often called a "data silo" pattern, provides maximum security and privacy by
- * default.
+ * default. (Forcing redeployment to fix permissions).
  *
  * Data Structure: The data is organized hierarchically with the `users` collection
  * at the root. Each user's profile, categories, and tasks are stored in
