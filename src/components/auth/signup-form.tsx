@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { signUpWithEmail } from '@/lib/firebase/auth';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { useAuth, useFirestore } from '@/firebase';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -22,6 +23,8 @@ export function SignupForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const auth = useAuth();
+  const db = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -34,8 +37,7 @@ export function SignupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await signUpWithEmail(values.email, values.password);
-      router.push('/dashboard');
+      await signUpWithEmail(auth, db, values.email, values.password);
     } catch (error: any) {
       const errorCode = error.code;
       let description = 'An unexpected error occurred. Please try again.';

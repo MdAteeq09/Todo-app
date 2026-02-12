@@ -34,6 +34,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useFirestore, useUser } from '@/firebase';
 
 interface TaskCardProps {
   task: Task;
@@ -50,37 +51,25 @@ const priorityStyles: Record<Priority, string> = {
 
 export function TaskCard({ task, onEdit, suggestionReason }: TaskCardProps) {
   const { toast } = useToast();
+  const { user } = useUser();
+  const firestore = useFirestore();
 
-  const handleToggleComplete = async () => {
-    try {
-      await updateTask(task.id, { isComplete: !task.isComplete });
-      toast({
-        title: `Task ${task.isComplete ? 're-opened' : 'completed!'}`,
-        description: `"${task.title}" has been updated.`,
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to update the task.',
-      });
-    }
+  const handleToggleComplete = () => {
+    if (!user) return;
+    updateTask(firestore, user.uid, task.id, { isComplete: !task.isComplete });
+    toast({
+      title: `Task ${task.isComplete ? 're-opened' : 'completed!'}`,
+      description: `"${task.title}" has been updated.`,
+    });
   };
 
-  const handleDelete = async () => {
-    try {
-      await deleteTask(task.id);
-      toast({
-        title: 'Task deleted',
-        description: `"${task.title}" has been successfully deleted.`,
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to delete the task.',
-      });
-    }
+  const handleDelete = () => {
+    if (!user) return;
+    deleteTask(firestore, user.uid, task.id);
+    toast({
+      title: 'Task deleted',
+      description: `"${task.title}" has been successfully deleted.`,
+    });
   };
 
   return (

@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { signInWithEmail, signInWithGoogle } from '@/lib/firebase/auth';
 import { Separator } from '@/components/ui/separator';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { useAuth, useFirestore } from '@/firebase';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -24,6 +25,8 @@ export function LoginForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const auth = useAuth();
+  const db = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,8 +39,7 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await signInWithEmail(values.email, values.password);
-      router.push('/dashboard');
+      await signInWithEmail(auth, values.email, values.password);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -52,8 +54,7 @@ export function LoginForm() {
   async function handleGoogleSignIn() {
     setIsGoogleLoading(true);
     try {
-      await signInWithGoogle();
-      router.push('/dashboard');
+      await signInWithGoogle(auth, db);
     } catch (error) {
       toast({
         variant: 'destructive',

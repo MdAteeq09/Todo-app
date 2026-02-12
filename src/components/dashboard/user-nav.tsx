@@ -15,14 +15,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { signOut } from '@/lib/firebase/auth';
-import { useAuth } from '@/hooks/use-auth';
+import { useUser, useAuth as useFirebaseAuth } from '@/firebase';
 
 export function UserNav() {
-  const { user } = useAuth();
+  const { user } = useUser();
+  const auth = useFirebaseAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
-    await signOut();
+    await signOut(auth);
     router.push('/login');
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/hooks/use-auth';
+import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { MainSidebar } from '@/components/dashboard/main-sidebar';
@@ -8,21 +8,21 @@ import { MobileNav } from '@/components/dashboard/mobile-nav';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (!loading) {
+    if (!isUserLoading) {
       if (!user) {
         router.replace('/login');
       } else {
         setIsChecking(false);
       }
     }
-  }, [user, loading, router]);
+  }, [user, isUserLoading, router]);
 
-  if (isChecking || loading) {
+  if (isChecking || isUserLoading) {
     return <LoadingSpinner fullScreen />;
   }
 

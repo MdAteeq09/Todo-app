@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useTasks } from '@/hooks/use-tasks';
+import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { TaskList } from '@/components/dashboard/task-list';
 import { TaskFilters } from '@/components/dashboard/task-filters';
 import { Header } from '@/components/dashboard/header';
@@ -14,7 +15,19 @@ import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { tasks, loading } = useTasks();
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const tasksQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'tasks'),
+      orderBy('createdAt', 'desc')
+    );
+  }, [user, firestore]);
+  
+  const { data: tasks, isLoading: loading } = useCollection<Task>(tasksQuery);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all');
@@ -39,6 +52,7 @@ export default function DashboardPage() {
   };
 
   const filteredTasks = useMemo(() => {
+    if (!tasks) return [];
     return tasks
       .filter(task => {
         if (statusFilter === 'all') return true;
@@ -54,6 +68,7 @@ export default function DashboardPage() {
   }, [tasks, statusFilter, priorityFilter, searchTerm]);
   
   const handleGetSuggestions = async () => {
+    if (!tasks) return;
     setIsSuggestionLoading(true);
     const result = await getCompletionSuggestions(tasks);
     if ('error' in result) {
@@ -97,7 +112,7 @@ export default function DashboardPage() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl md:text-3xl font-bold">Your Tasks</h1>
-            <Button onClick={handleGetSuggestions} disabled={isSuggestionLoading}>
+            <Button onClick={handleGetSuggestions} disabled={isSuggestionLoading || !tasks || tasks.length === 0}>
               <Sparkles className="mr-2 h-4 w-4" />
               {isSuggestionLoading ? 'Analyzing...' : 'AI Suggestions'}
             </Button>

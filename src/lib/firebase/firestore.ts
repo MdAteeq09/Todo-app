@@ -1,49 +1,47 @@
 import {
   collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   doc,
   serverTimestamp,
-  query,
-  where,
-  getDocs,
+  type Firestore,
+  type User,
 } from 'firebase/firestore';
-import { db } from './config';
 import type { Task } from '@/lib/types';
+import { addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 
-export const createTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
-  if (!db) {
-    return Promise.reject(new Error('Firestore is not initialized.'));
+export const createUserProfile = (db: Firestore, user: User) => {
+  const userProfileRef = doc(db, 'users', user.uid);
+  const profileData = {
+    id: user.uid,
+    email: user.email,
+    displayName: user.displayName,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+  setDocumentNonBlocking(userProfileRef, profileData, {});
+};
+
+export const createTask = (db: Firestore, taskData: Omit<Task, 'id' | 'createdAt'>) => {
+  if (!taskData.userId) {
+    console.error("User ID is missing, cannot create task.");
+    return Promise.reject(new Error("User ID is missing."));
   }
-  const tasksCollection = collection(db, 'tasks');
-  return addDoc(tasksCollection, {
+  const tasksCollection = collection(db, 'users', taskData.userId, 'tasks');
+  return addDocumentNonBlocking(tasksCollection, {
     ...taskData,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   });
 };
 
-export const updateTask = (taskId: string, updates: Partial<Task>) => {
-  if (!db) {
-    return Promise.reject(new Error('Firestore is not initialized.'));
-  }
-  const taskDoc = doc(db, 'tasks', taskId);
-  return updateDoc(taskDoc, updates);
+export const updateTask = (db: Firestore, userId: string, taskId: string, updates: Partial<Task>) => {
+  const taskDoc = doc(db, 'users', userId, 'tasks', taskId);
+  return updateDocumentNonBlocking(taskDoc, {
+    ...updates,
+    updatedAt: serverTimestamp(),
+  });
 };
 
-export const deleteTask = (taskId: string) => {
-  if (!db) {
-    return Promise.reject(new Error('Firestore is not initialized.'));
-  }
-  const taskDoc = doc(db, 'tasks', taskId);
-  return deleteDoc(taskDoc);
+export const deleteTask = (db: Firestore, userId: string, taskId: string) => {
+  const taskDoc = doc(db, 'users', userId, 'tasks', taskId);
+  return deleteDocumentNonBlocking(taskDoc);
 };
-
-export const getTasks = (userId: string) => {
-    if (!db) {
-        return Promise.reject(new Error('Firestore is not initialized.'));
-    }
-    const tasksCollection = collection(db, 'tasks');
-    const q = query(tasksCollection, where("userId", "==", userId));
-    return getDocs(q);
-}

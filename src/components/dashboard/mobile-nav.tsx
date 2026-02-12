@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, ListTodo, PlusCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/hooks/use-auth';
+import { useUser } from '@/firebase';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -13,7 +13,7 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user } = useUser();
 
   return (
     <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-card border-t md:hidden">

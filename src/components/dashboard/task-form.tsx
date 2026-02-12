@@ -16,7 +16,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
+import { useUser, useFirestore } from '@/firebase';
 import type { Task, Priority } from '@/lib/types';
 import { createTask, updateTask } from '@/lib/firebase/firestore';
 import { getPrioritySuggestion } from '@/actions/tasks';
@@ -39,7 +39,8 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ task, onSuccess }: TaskFormProps) {
-  const { user } = useAuth();
+  const { user } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -61,7 +62,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
   const title = watch('title');
   const description = watch('description');
 
-  const onSubmit = async (data: TaskFormValues) => {
+  const onSubmit = (data: TaskFormValues) => {
     if (!user) {
       toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in.' });
       return;
@@ -74,20 +75,15 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
     };
 
-    try {
-      if (task) {
-        await updateTask(task.id, taskData);
-        toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
-      } else {
-        await createTask({ ...taskData, isComplete: false });
-        toast({ title: 'Task Created', description: `"${data.title}" has been added.` });
-      }
-      onSuccess();
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Something went wrong.' });
-    } finally {
-      setIsLoading(false);
+    if (task) {
+      updateTask(firestore, user.uid, task.id, taskData);
+      toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
+    } else {
+      createTask(firestore, { ...taskData, isComplete: false });
+      toast({ title: 'Task Created', description: `"${data.title}" has been added.` });
     }
+    setIsLoading(false);
+    onSuccess();
   };
   
   const handleAiSuggestion = async () => {

@@ -1,25 +1,41 @@
 import {
+  type Auth,
+  type User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
   signOut as firebaseSignOut,
+  getAdditionalUserInfo,
 } from 'firebase/auth';
-import { auth } from './config';
+import type { Firestore } from 'firebase/firestore';
+import { createUserProfile } from './firestore';
 
-export const signUpWithEmail = (email, password) => {
-  return createUserWithEmailAndPassword(auth, email, password);
+export const signUpWithEmail = (auth: Auth, db: Firestore, email, password) => {
+  return createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      if (userCredential.user) {
+        createUserProfile(db, userCredential.user);
+      }
+      return userCredential;
+    });
 };
 
-export const signInWithEmail = (email, password) => {
+export const signInWithEmail = (auth: Auth, email, password) => {
   return signInWithEmailAndPassword(auth, email, password);
 };
 
 const googleProvider = new GoogleAuthProvider();
-export const signInWithGoogle = () => {
-  return signInWithPopup(auth, googleProvider);
+export const signInWithGoogle = (auth: Auth, db: Firestore) => {
+  return signInWithPopup(auth, googleProvider).then((result) => {
+    const additionalInfo = getAdditionalUserInfo(result);
+    if (additionalInfo?.isNewUser && result.user) {
+        createUserProfile(db, result.user);
+    }
+    return result;
+  });
 };
 
-export const signOut = () => {
+export const signOut = (auth: Auth) => {
   return firebaseSignOut(auth);
 };
