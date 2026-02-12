@@ -11,6 +11,7 @@ export type Task = {
   priority: Priority;
   category?: string;
   createdAt?: number; // Unix timestamp
+  updatedAt?: number; // Unix timestamp
 };
 
 export type UserProfile = {

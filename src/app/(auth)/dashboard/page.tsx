@@ -70,7 +70,14 @@ export default function DashboardPage() {
   const handleGetSuggestions = async () => {
     if (!tasks) return;
     setIsSuggestionLoading(true);
-    const result = await getCompletionSuggestions(tasks);
+
+    const serializableTasks = (tasks as any[]).map(task => ({
+      ...task,
+      createdAt: task.createdAt?.toMillis(),
+      updatedAt: task.updatedAt?.toMillis(),
+    }));
+
+    const result = await getCompletionSuggestions(serializableTasks);
     if ('error' in result) {
       toast({
         variant: 'destructive',
