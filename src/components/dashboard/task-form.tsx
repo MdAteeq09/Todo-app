@@ -69,17 +69,21 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     }
     setIsLoading(true);
 
-    const taskData = {
-      ...data,
+    const { dueDate, ...restOfData } = data;
+    const taskPayload: Partial<Task> = {
+      ...restOfData,
       userId: user.uid,
-      dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
     };
 
+    if (dueDate) {
+      taskPayload.dueDate = dueDate.toISOString();
+    }
+
     if (task) {
-      updateTask(firestore, user.uid, task.id, taskData);
+      updateTask(firestore, user.uid, task.id, taskPayload);
       toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
     } else {
-      createTask(firestore, { ...taskData, isComplete: false });
+      createTask(firestore, { ...taskPayload, isComplete: false } as Omit<Task, 'id' | 'createdAt'>);
       toast({ title: 'Task Created', description: `"${data.title}" has been added.` });
     }
     setIsLoading(false);
