@@ -19,7 +19,7 @@ export const createTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
   const tasksCollection = collection(db, 'tasks');
   return addDoc(tasksCollection, {
     ...taskData,
-    createdAt: Date.now(),
+    createdAt: serverTimestamp(),
   });
 };
 

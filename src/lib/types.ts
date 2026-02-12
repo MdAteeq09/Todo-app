@@ -9,7 +9,7 @@ export type Task = {
   dueDate?: string; // ISO string format
   priority: Priority;
   category?: string;
-  createdAt: number; // Unix timestamp
+  createdAt?: number; // Unix timestamp
 };
 
 export type UserProfile = {

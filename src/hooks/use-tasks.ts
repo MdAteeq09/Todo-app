@@ -33,7 +33,13 @@ export function useTasks() {
       (querySnapshot) => {
         const tasksData: Task[] = [];
         querySnapshot.forEach((doc) => {
-          tasksData.push({ id: doc.id, ...doc.data() } as Task);
+          const data = doc.data();
+          if (data.createdAt && typeof data.createdAt.toMillis === 'function') {
+            data.createdAt = data.createdAt.toMillis();
+          } else if (data.createdAt === null) {
+            delete data.createdAt;
+          }
+          tasksData.push({ id: doc.id, ...data } as Task);
         });
         setTasks(tasksData);
         setLoading(false);
