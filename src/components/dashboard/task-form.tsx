@@ -26,7 +26,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  dueDate: z.date().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']),
   category: z.string().optional(),
 });
@@ -48,7 +49,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
   const defaultValues: Partial<TaskFormValues> = {
     title: task?.title ?? '',
     description: task?.description ?? '',
-    dueDate: task?.dueDate ? parseISO(task.dueDate) : undefined,
+    startDate: task?.startDate ? parseISO(task.startDate) : undefined,
+    endDate: task?.endDate ? parseISO(task.endDate) : undefined,
     priority: task?.priority ?? 'medium',
     category: task?.category ?? '',
   };
@@ -69,15 +71,19 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     }
     setIsLoading(true);
 
-    const { dueDate, ...restOfData } = data;
+    const { startDate, endDate, ...restOfData } = data;
     const taskPayload: Partial<Task> = {
       ...restOfData,
       userId: user.uid,
     };
 
-    if (dueDate) {
-      taskPayload.dueDate = dueDate.toISOString();
+    if (startDate) {
+      taskPayload.startDate = startDate.toISOString();
     }
+    if (endDate) {
+      taskPayload.endDate = endDate.toISOString();
+    }
+
 
     if (task) {
       updateTask(firestore, user.uid, task.id, taskPayload);
@@ -135,10 +141,10 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="dueDate"
+              name="startDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Due Date</FormLabel>
+                  <FormLabel>Start Date</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -159,6 +165,34 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="endDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>End Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
+                        >
+                          {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="priority"
@@ -190,18 +224,18 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl><Input placeholder="e.g. Work, Personal" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <FormControl><Input placeholder="e.g. Work, Personal" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <DialogFooter>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <LoadingSpinner className="mr-2 h-4 w-4" />}

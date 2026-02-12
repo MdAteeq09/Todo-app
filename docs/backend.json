@@ -104,9 +104,14 @@
           "type": "boolean",
           "description": "A flag indicating whether the task has been marked as completed."
         },
-        "dueDate": {
+        "startDate": {
           "type": "string",
-          "description": "The date and time by which the task is expected to be completed.",
+          "description": "The start date and time for the task.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date and time by which the task is expected to be completed.",
           "format": "date-time"
         },
         "priority": {

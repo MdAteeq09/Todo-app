@@ -6,7 +6,8 @@ export type Task = {
   title: string;
   description?: string;
   isComplete: boolean;
-  dueDate?: string; // ISO string format
+  startDate?: string; // ISO string format
+  endDate?: string; // ISO string format
   priority: Priority;
   category?: string;
   createdAt?: number; // Unix timestamp

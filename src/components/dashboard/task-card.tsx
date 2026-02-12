@@ -96,10 +96,14 @@ export function TaskCard({ task, onEdit, suggestionReason }: TaskCardProps) {
             <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
           )}
           <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2 text-xs text-muted-foreground">
-            {task.dueDate && (
+            {(task.startDate || task.endDate) && (
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                <span>{format(parseISO(task.dueDate), 'MMM d, yyyy')}</span>
+                <span>
+                  {task.startDate ? format(parseISO(task.startDate), 'MMM d') : '...'}
+                  {' - '}
+                  {task.endDate ? format(parseISO(task.endDate), 'MMM d, yyyy') : '...'}
+                </span>
               </div>
             )}
             <div className="flex items-center gap-1">
