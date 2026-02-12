@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'TaskZenith',
-  description: 'Master your tasks with AI-powered prioritization and management.',
+  title: 'DailyDo',
+  description: 'Master your day with DailyDo, your AI-powered task manager.',
 };
 
 export default function RootLayout({

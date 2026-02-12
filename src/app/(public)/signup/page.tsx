@@ -5,7 +5,7 @@ export default function SignupPage() {
   return (
     <AuthFormWrapper
       title="Create an Account"
-      description="Start organizing your life with TaskZenith."
+      description="Start organizing your life with DailyDo."
       footerText="Already have an account?"
       footerLink="/login"
       footerLinkText="Log In"

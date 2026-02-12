@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, ListTodo, CheckCircle, Folder, Settings } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { TaskZenithIcon } from '@/components/icons';
+import { DailyDoIcon } from '@/components/icons';
 import { UserNav } from './user-nav';
 
 const navItems = [
@@ -21,8 +21,8 @@ export function MainSidebar() {
     <aside className="fixed top-0 left-0 h-full w-64 border-r bg-card text-card-foreground hidden md:flex flex-col">
       <div className="flex items-center justify-center h-20 border-b">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <TaskZenithIcon className="h-8 w-8 text-primary" />
-          <span className="text-xl font-bold">TaskZenith</span>
+          <DailyDoIcon className="h-8 w-8" />
+          <span className="text-xl font-bold">DailyDo</span>
         </Link>
       </div>
       <nav className="flex-1 px-4 py-6 space-y-2">
