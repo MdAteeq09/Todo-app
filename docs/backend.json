@@ -1,0 +1,209 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user's profile information, linked to an external authentication system. This entity stores non-authentication-sensitive user data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity, typically provided by the external authentication system (e.g., Firebase Auth UID)."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's primary email address, used for identification and communication.",
+          "format": "email"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's preferred display name or full name."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a user-defined category for organizing and filtering tasks.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile that owns this category. Categories are user-specific. (Relationship: UserProfile 1:N Category)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the category (e.g., 'Work', 'Personal', 'Groceries')."
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional brief description of what this category entails."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the category was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the category was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Task": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Task",
+      "type": "object",
+      "description": "Represents a single task item, including its details, status, and associated metadata.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Task entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile that owns this task. (Relationship: UserProfile 1:N Task)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The main title or brief summary of the task."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description or additional notes for the task."
+        },
+        "isComplete": {
+          "type": "boolean",
+          "description": "A flag indicating whether the task has been marked as completed."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The date and time by which the task is expected to be completed.",
+          "format": "date-time"
+        },
+        "priority": {
+          "type": "string",
+          "description": "The priority level of the task, e.g., 'Low', 'Medium', 'High'."
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to the Category this task belongs to. (Relationship: Category 1:N Task)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the task was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the task was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "title",
+        "isComplete",
+        "priority",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores individual user profile information. Each document's ID is the user's authentication UID. Access is restricted to the owning user. The 'id' field within the document matches the '{userId}' path parameter for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier (UID) of the user, matching 'request.auth.uid'."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "A subcollection for user-defined task categories. Each document represents a category owned by the respective user. Includes denormalized 'userId' in the path for authorization independence. The 'userId' field within the document must match the '{userId}' path parameter.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier (UID) of the user who owns this category, matching 'request.auth.uid'."
+            },
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for a specific category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "schema": {
+            "$ref": "#/backend/entities/Task"
+          },
+          "description": "A subcollection for user-specific tasks. Each document represents a task owned by the respective user. Includes denormalized 'userId' in the path for authorization independence. The 'userId' field within the document must match the '{userId}' path parameter. The 'categoryId' field provides a link to a Category, primarily for filtering and organization, not for hierarchical authorization.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier (UID) of the user who owns this task, matching 'request.auth.uid'."
+            },
+            {
+              "name": "taskId",
+              "description": "The unique identifier for a specific task."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure for TaskZenith prioritizes secure, scalable, and debuggable access to user-owned data. All data related to a specific user (profile, categories, tasks) is nested under a top-level `/users/{userId}` collection. This structural segregation ensures that all documents within a given user's subcollections (`/users/{userId}/categories`, `/users/{userId}/tasks`) share the same security posture: they are private to that `userId`.\n\n**Authorization Independence (CRITICAL):** Authorization is achieved without reliance on `get()` calls in security rules. For `UserProfile`, `Category`, and `Task` entities, the `userId` is explicitly embedded in the Firestore path (e.g., `/users/{userId}/categories/{categoryId}`). This denormalization means that during any read or write operation, the `request.auth.uid` can be directly compared against the `{userId}` wildcard in the path, making authorization atomic and highly efficient. The `userId` field within the `Category` and `Task` documents provides an additional layer of data integrity and facilitates client-side logic, but the primary authorization check happens at the path level.\n\n**QAPs (Query Against Paths):** This structure inherently supports secure `list` operations. When a user queries `/users/my_user_id/tasks`, for example, Firestore's security rules can simply verify that `request.auth.uid == my_user_id`. Because all tasks under this path are guaranteed to belong to `my_user_id`, the query will only return authorized documents without needing additional filtering logic within the rules themselves. The same applies to categories. This adherence to QAPs prevents rule complexity and potential security vulnerabilities that arise from rules attempting to act as filters. The `categoryId` field within the `Task` document allows for efficient querying and filtering of tasks by category *within* a user's collection, without impacting the primary authorization model."
+  }
+}
