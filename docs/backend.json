@@ -151,64 +151,23 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores individual user profile information. Each document's ID is the user's authentication UID. Access is restricted to the owning user. The 'id' field within the document matches the '{userId}' path parameter for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier (UID) of the user, matching 'request.auth.uid'."
-            }
-          ]
-        }
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/backend/entities/UserProfile"
       },
-      {
-        "path": "/users/{userId}/categories/{categoryId}",
-        "definition": {
-          "entityName": "Category",
-          "schema": {
-            "$ref": "#/backend/entities/Category"
-          },
-          "description": "A subcollection for user-defined task categories. Each document represents a category owned by the respective user. Includes denormalized 'userId' in the path for authorization independence. The 'userId' field within the document must match the '{userId}' path parameter.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier (UID) of the user who owns this category, matching 'request.auth.uid'."
-            },
-            {
-              "name": "categoryId",
-              "description": "The unique identifier for a specific category."
-            }
-          ]
-        }
+      "description": "Stores individual user profile information. Each document's ID is the user's authentication UID. Access is restricted to the owning user. The 'id' field within the document matches the '{userId}' path parameter for authorization independence."
+    },
+    "/users/{userId}/categories/{categoryId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Category"
       },
-      {
-        "path": "/users/{userId}/tasks/{taskId}",
-        "definition": {
-          "entityName": "Task",
-          "schema": {
-            "$ref": "#/backend/entities/Task"
-          },
-          "description": "A subcollection for user-specific tasks. Each document represents a task owned by the respective user. Includes denormalized 'userId' in the path for authorization independence. The 'userId' field within the document must match the '{userId}' path parameter. The 'categoryId' field provides a link to a Category, primarily for filtering and organization, not for hierarchical authorization.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier (UID) of the user who owns this task, matching 'request.auth.uid'."
-            },
-            {
-              "name": "taskId",
-              "description": "The unique identifier for a specific task."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure for TaskZenith prioritizes secure, scalable, and debuggable access to user-owned data. All data related to a specific user (profile, categories, tasks) is nested under a top-level `/users/{userId}` collection. This structural segregation ensures that all documents within a given user's subcollections (`/users/{userId}/categories`, `/users/{userId}/tasks`) share the same security posture: they are private to that `userId`.\n\n**Authorization Independence (CRITICAL):** Authorization is achieved without reliance on `get()` calls in security rules. For `UserProfile`, `Category`, and `Task` entities, the `userId` is explicitly embedded in the Firestore path (e.g., `/users/{userId}/categories/{categoryId}`). This denormalization means that during any read or write operation, the `request.auth.uid` can be directly compared against the `{userId}` wildcard in the path, making authorization atomic and highly efficient. The `userId` field within the `Category` and `Task` documents provides an additional layer of data integrity and facilitates client-side logic, but the primary authorization check happens at the path level.\n\n**QAPs (Query Against Paths):** This structure inherently supports secure `list` operations. When a user queries `/users/my_user_id/tasks`, for example, Firestore's security rules can simply verify that `request.auth.uid == my_user_id`. Because all tasks under this path are guaranteed to belong to `my_user_id`, the query will only return authorized documents without needing additional filtering logic within the rules themselves. The same applies to categories. This adherence to QAPs prevents rule complexity and potential security vulnerabilities that arise from rules attempting to act as filters. The `categoryId` field within the `Task` document allows for efficient querying and filtering of tasks by category *within* a user's collection, without impacting the primary authorization model."
+      "description": "A subcollection for user-defined task categories. Each document represents a category owned by the respective user. Includes denormalized 'userId' in the path for authorization independence. The 'userId' field within the document must match the '{userId}' path parameter."
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Task"
+      },
+      "description": "A subcollection for user-specific tasks. Each document represents a task owned by the respective user. Includes denormalized 'userId' in the path for authorization independence. The 'userId' field within the document must match the '{userId}' path parameter. The 'categoryId' field provides a link to a Category, primarily for filtering and organization, not for hierarchical authorization."
+    }
   }
 }
