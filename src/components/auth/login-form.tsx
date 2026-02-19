@@ -36,34 +36,34 @@ export function LoginForm() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    try {
-      await signInWithEmail(auth, values.email, values.password);
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Invalid email or password. Please try again.',
+    signInWithEmail(auth, values.email, values.password)
+      .catch(() => {
+        toast({
+          variant: 'destructive',
+          title: 'Login Failed',
+          description: 'Invalid email or password. Please try again.',
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-    } finally {
-      setIsLoading(false);
-    }
   }
 
-  async function handleGoogleSignIn() {
+  function handleGoogleSignIn() {
     setIsGoogleLoading(true);
-    try {
-      await signInWithGoogle(auth, db);
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-In Failed',
-        description: 'Could not sign in with Google. Please try again.',
+    signInWithGoogle(auth, db)
+      .catch(() => {
+        toast({
+          variant: 'destructive',
+          title: 'Google Sign-In Failed',
+          description: 'Could not sign in with Google. Please try again.',
+        });
+      })
+      .finally(() => {
+        setIsGoogleLoading(false);
       });
-    } finally {
-      setIsGoogleLoading(false);
-    }
   }
 
   return (

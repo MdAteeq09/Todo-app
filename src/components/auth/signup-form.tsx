@@ -34,24 +34,24 @@ export function SignupForm() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    try {
-      await signUpWithEmail(auth, db, values.email, values.password);
-    } catch (error: any) {
-      const errorCode = error.code;
-      let description = 'An unexpected error occurred. Please try again.';
-      if (errorCode === 'auth/email-already-in-use') {
-        description = 'This email is already in use. Please log in instead.';
-      }
-      toast({
-        variant: 'destructive',
-        title: 'Sign-up Failed',
-        description,
+    signUpWithEmail(auth, db, values.email, values.password)
+      .catch((error: any) => {
+        const errorCode = error.code;
+        let description = 'An unexpected error occurred. Please try again.';
+        if (errorCode === 'auth/email-already-in-use') {
+          description = 'This email is already in use. Please log in instead.';
+        }
+        toast({
+          variant: 'destructive',
+          title: 'Sign-up Failed',
+          description,
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-    } finally {
-      setIsLoading(false);
-    }
   }
 
   return (
